@@ -1,6 +1,11 @@
 
-  <span class="tw" #tw> </span>
+  <span  class="tw" #tw> </span>
   <br>
-  <span class="tw" #tw2> </span>
   <br>
-  <button *ngIf="showButton">Hello</button>
+  <span  class="tw" #tw2> </span>
+  <br>
+  <button *ngIf="showButton && !readyToGo" (click)="switchReady()">Ok!</button>
+  <button *ngIf="showButton && !readyToGo" (click)="switchNo()">No</button>
+  <span  class="tw" #tw3> </span>
+  <span class="tw" #tw5></span>
+  
