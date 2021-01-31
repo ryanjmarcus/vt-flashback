@@ -1,4 +1,5 @@
 import json
+import sys
 import flask
 from flask import request, jsonify
 import requests
@@ -33,7 +34,7 @@ def api_course_search_all():
 @app.route('/api/v1/canvas/courses', methods=['GET'])
 def access_canvas_courses():
     
-    url = "https://canvas.vt.edu/api/v1/courses"
+    url = "https://canvas.vt.edu/api/v1/courses?per_page=100"
 
     if 'token' in request.args:
 
@@ -45,19 +46,21 @@ def access_canvas_courses():
         'Authorization' : 'Bearer ' + token,
     }
 
-    canvas_courses = requests.get(url = url, headers = headers, data = {})
+    canvas_courses = requests.request("GET", url, headers=headers)
 
-    for course in canvas_courses:
-        
-        print(course)
-        if "course_code" in course:
+    canvas_json_courses = json.loads(canvas_courses.text)
+
+
+    for course in canvas_json_courses:
+    
+        if "course_code" in course and "_" in str(course["course_code"]) :
+            print(course["course_code"])
             course_values = split_course_code(course["course_code"])
-            course_info_hokiespa = course_search_hokiespa(course_values[0], course_values[1])
-            course_info_gpa = course_search_gpa(course_values[0], course_values[1])
-
+        #course_info_hokiespa = course_search_hokiespa(course_values[0], course_values[1])
+        #course_info_gpa = course_search_gpa(course_values[0], course_values[1])
         
 
-    return jsonify(canvas_courses)
+    return jsonify(canvas_json_courses)
 
 def course_search_gpa(crn, term):
     # Create an empty list for our results
@@ -109,7 +112,7 @@ def course_search_hokiespa(crn, term):
     
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
-    return ["Error: Course is not found"]
+    return ["Error: Course is not found"]   
 
 def split_course_code(course_code):
 
