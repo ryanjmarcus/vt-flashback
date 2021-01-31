@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs/Observable';
+import {Course} from '../models/course.model';
 
 @Injectable({
   providedIn: 'root'
@@ -9,10 +11,10 @@ export class CanvasService {
   private canvasUrl: string;
 
   constructor(private http: HttpClient) {
-    this.canvasUrl = 'https://canvas.vt.edu/api/v1/courses?per_page=100&access_token=4511~SsI750mQ6uLCXvAYdil WU7Xz9CO2h4BLFA5y2y9xMNztFbGePiUHQcLULGaMC6sC';
+    this.canvasUrl = 'http://127.0.0.1:5000/api/v1/canvas/courses?token=';
   }
 
-  public getCourses() {
-    return this.http.get(this.canvasUrl);
+  public getCourses(token: string): Observable<Course[]> {
+    return this.http.get(this.canvasUrl + token);
   }
 }

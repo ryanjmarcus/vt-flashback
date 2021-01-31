@@ -5,9 +5,11 @@ from flask import request, jsonify
 import requests
 import pandas as pd
 import glob
+from flask_cors import CORS
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
+CORS(app)
 
 csv_file = pd.read_csv("Grade_Distribution.csv", index_col = False)
 csv_json_string = csv_file.to_json(orient = "records", double_precision = 10, default_handler = None)
