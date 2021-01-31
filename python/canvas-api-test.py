@@ -3,7 +3,7 @@ def access_canvas_courses():
     
     url = "https://canvas.vt.edu/api/v1/courses"
 
-    token = "4511~SsI750mQ6uLCXvAYdilWU7Xz9CO2h4BLFA5y2y9xMNztFbGePiUHQcLULGaMC6sC"
+    token = ""
 
     headers = {
         'Authorization' : 'Bearer ' + token
