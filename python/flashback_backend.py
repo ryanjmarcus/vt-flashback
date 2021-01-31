@@ -72,17 +72,7 @@ def access_canvas_courses():
                     assignments = getAssignments(course["id"], token)
                     users = getUsers(course["id"], token)
                     
-                    user_object_list = []
-                    for user in users:
-                        
-                
-                        user_object = {
-                           "user_name" : user["name"],
-                            "avatar_url" : user["avatar_url"]
-
-                        }
-
-                        user_object_list.append(user_object)
+                    
 
 
                     course_object = {
@@ -90,9 +80,10 @@ def access_canvas_courses():
                         "subject" : course_info_hokiespa["subject"],
                         "course_number" : course_info_hokiespa["courseNumber"],
                         "begin_time" : course_info_hokiespa["meetingsFaculty"][0]["meetingTime"]["beginTime"],
-                        "users" : user_object_list,
-                        "user_total" : len(user_object_list),
-                        "assignment_total" : len(assignments)
+                        "users" : users,
+                        "user_total" : len(users),
+                        "assignment_total" : len(assignments),
+                        "teacher" : course_info_hokiespa["faculty"][0]["displayName"]
                     }
 
                     if course_info_gpa:
@@ -132,8 +123,32 @@ def getUsers(id, token):
     canvas_courses = requests.request("GET", url, headers=headers)
 
     users = json.loads(canvas_courses.text)
+    user_object_list = []
+    for user in users:
+                        
+        user_object = {
+            "user_name" : user["name"],
+            "avatar_url" : user["avatar_url"]
 
-    return users
+        }
+        user_object_list.append(user_object)
+    count = 2
+
+    while canvas_courses.links['current']['url'] != canvas_courses.links['last']['url']:  
+        
+        canvas_courses = requests.request("GET", url = canvas_courses.links['next']['url'], headers=headers) 
+        users = json.loads(canvas_courses.text)  
+        for user in users:
+                        
+            user_object = {
+                "user_name" : user["name"],
+                "avatar_url" : user["avatar_url"]
+
+            }
+            user_object_list.append(user_object)
+        count += 1
+    return user_object_list
+    
 
 
 def course_search_gpa(crn, term):
