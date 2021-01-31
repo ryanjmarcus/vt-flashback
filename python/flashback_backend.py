@@ -70,6 +70,19 @@ def access_canvas_courses():
                 if course_info_hokiespa:
                     
                     assignments = getAssignments(course["id"], token)
+                    users = getUsers(course["id"], token)
+                    
+                    user_object_list = []
+                    for user in users:
+                        
+                
+                        user_object = {
+                           "user_name" : user["name"],
+                            "avatar_url" : user["avatar_url"]
+
+                        }
+
+                        user_object_list.append(user_object)
 
 
                     course_object = {
@@ -77,7 +90,8 @@ def access_canvas_courses():
                         "subject" : course_info_hokiespa["subject"],
                         "course_number" : course_info_hokiespa["courseNumber"],
                         "begin_time" : course_info_hokiespa["meetingsFaculty"][0]["meetingTime"]["beginTime"],
-
+                        "users" : user_object_list,
+                        "user_total" : len(user_object_list),
                         "assignment_total" : len(assignments)
                     }
 
@@ -106,6 +120,21 @@ def getAssignments(id, token):
     assignments = json.loads(canvas_courses.text)
 
     return assignments
+
+
+def getUsers(id, token):
+    url = "https://canvas.vt.edu/api/v1/courses/" + str(id) + "/users?include%5B%5D=avatar_url&per_page=100"
+
+    headers = {
+        'Authorization' : 'Bearer ' + token,
+    }
+
+    canvas_courses = requests.request("GET", url, headers=headers)
+
+    users = json.loads(canvas_courses.text)
+
+    return users
+
 
 def course_search_gpa(crn, term):
     # Create an empty list for our results
