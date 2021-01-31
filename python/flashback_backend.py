@@ -15,13 +15,22 @@ csv_file = pd.read_csv("Grade_Distribution.csv", index_col = False)
 csv_json_string = csv_file.to_json(orient = "records", double_precision = 10, default_handler = None)
 csv_json = json.loads(csv_json_string)
 
-#read_files = glob.glob("*.json")
-#with open("merged_file.json", "wb") as outfile:
+read_files = glob.glob("*.json")
+print(read_files)
+# with open("merged_file.json", "wb") as outfile:
 #    outfile.write('[{}]'.format(
 #        ','.join([open(f, "rb").read() for f in read_files])))
 
-with open('2020_09.json') as file:
-    merged_json = json.load(file)
+# with open('2020_09.json') as file:
+#     merged_json = json.load(file)
+merged_json = {}
+
+for file in read_files:
+    with open(file) as f:
+        temp_json = json.load(f)
+        new_term = file.split(".")[0]
+      
+        merged_json[new_term] = temp_json
 
 
 # A route to return all of the available entries in our catalog.
@@ -33,10 +42,31 @@ def api_all():
 def api_course_search_all():
     return jsonify(merged_json)
 
+
+@app.route('/api/v1/canvas/user', methods=['GET'])
+def access_canvas_user():
+    url = "https://canvas.vt.edu/api/v1/users/self/profile"
+
+    if 'token' in request.args:
+
+        token = request.args['token']
+    else:
+        return "Error: No Token field provided. Please Provide token field"
+
+    headers = {
+        'Authorization' : 'Bearer ' + token,
+    }
+
+    canvas_user = requests.request("GET", url, headers=headers)
+    canvas_json_user = json.loads(canvas_user.text)
+
+    return canvas_json_user
+
+
 @app.route('/api/v1/canvas/courses', methods=['GET'])
 def access_canvas_courses():
     
-    url = "https://canvas.vt.edu/api/v1/courses?per_page=100"
+    url = "https://canvas.vt.edu/api/v1/courses?per_page=100&state=published"
 
     if 'token' in request.args:
 
@@ -67,11 +97,17 @@ def access_canvas_courses():
 
                 if course_info_hokiespa:
                     
-                    assignments = getAssignments(course["id"], token)
-                    users = getUsers(course["id"], token)
                     
+                    
+                    assignments = getAssignments(course["id"], token)
+
                     
 
+                    #users = getUsers(course["id"], token)
+                    users = []
+                    
+                    
+                    
 
                     course_object = {
                         "course" : course["name"],
@@ -79,11 +115,11 @@ def access_canvas_courses():
                         "course_number" : course_info_hokiespa["courseNumber"],
                         "begin_time" : course_info_hokiespa["meetingsFaculty"][0]["meetingTime"]["beginTime"],
                         "users" : users,
-                        "user_total" : len(users),
+                        "user_total" : course_info_hokiespa['enrollment'],
                         "assignment_total" : len(assignments),
                         "teacher" : course_info_hokiespa["faculty"][0]["displayName"]
                     }
-
+                    
                     if course_info_gpa:
                         course_object["credit_hours"] = course_info_gpa["Credits"]
                         course_object["GPA"] = course_info_gpa["GPA"]
@@ -112,7 +148,8 @@ def getAssignments(id, token):
 
 
 def getUsers(id, token):
-    url = "https://canvas.vt.edu/api/v1/courses/" + str(id) + "/users?include%5B%5D=avatar_url&per_page=100"
+    print("start")
+    url = "https://canvas.vt.edu/api/v1/courses/" + str(id) + "/users?include_inactive=true&include%5B%5D=avatar_url&include%5B%5D=enrollments&include%5B%5D=observed_users&include%5B%5D=can_be_removed&per_page=100"
 
     headers = {
         'Authorization' : 'Bearer ' + token,
@@ -123,28 +160,29 @@ def getUsers(id, token):
     users = json.loads(canvas_courses.text)
     user_object_list = []
     for user in users:
-                        
-        user_object = {
-            "user_name" : user["name"],
-            "avatar_url" : user["avatar_url"]
-
-        }
-        user_object_list.append(user_object)
-    count = 2
-
-    while canvas_courses.links['current']['url'] != canvas_courses.links['last']['url']:  
-        
-        canvas_courses = requests.request("GET", url = canvas_courses.links['next']['url'], headers=headers) 
-        users = json.loads(canvas_courses.text)  
-        for user in users:
-                        
-            user_object = {
+        if not isinstance(user, str):
+            user_object = { 
                 "user_name" : user["name"],
                 "avatar_url" : user["avatar_url"]
 
             }
             user_object_list.append(user_object)
-        count += 1
+
+    count = 2
+    if canvas_courses:
+        while canvas_courses.links['current']['url'] != canvas_courses.links['last']['url']:  
+            
+            canvas_courses = requests.request("GET", url = canvas_courses.links['next']['url'], headers=headers) 
+            users = json.loads(canvas_courses.text)  
+            for user in users:
+    
+                user_object = {
+                    "user_name" : user["name"],
+                    "avatar_url" : user["avatar_url"]
+
+                }
+                user_object_list.append(user_object)
+    print("End")    
     return user_object_list
     
 
@@ -176,6 +214,7 @@ def course_search_gpa(crn, term):
     
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
+  
     return None
 
 
@@ -192,16 +231,27 @@ def course_search_hokiespa(crn, term):
     # Create an empty list for our results
     results = []
 
+    year = term[:4]
+    semester = term[4:]
+    new_term = year + "_" + semester
+    
+    if new_term in merged_json:
+        
+        for course in merged_json[new_term]:
+            
+            if course['courseReferenceNumber'] == crn:
+                
+                return course
+        
+
     # Loop through the data and match results that fit the requested ID.
     # IDs are unique, but other fields might return many results
-    for course in merged_json:
-        if course['courseReferenceNumber'] == crn:
-            results.append(course)
+    
 
-    for course in results:
+    # for course in results:
 
-        if course["term"] == term:
-            return course
+    #     if course["term"] == term:
+    #         return course
     
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
@@ -230,4 +280,3 @@ def split_course_code(course_code):
 
 
 app.run()
-
