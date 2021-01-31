@@ -7,11 +7,9 @@ import pandas as pd
 import glob
 from flask_cors import CORS
 
-
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 CORS(app)
-
 
 csv_file = pd.read_csv("Grade_Distribution.csv", index_col = False)
 csv_json_string = csv_file.to_json(orient = "records", double_precision = 10, default_handler = None)
@@ -90,7 +88,7 @@ def access_canvas_courses():
                         course_object["credit_hours"] = course_info_gpa["Credits"]
                         course_object["GPA"] = course_info_gpa["GPA"]
                     else:
-                        ourse_object["credit_hours"] = None
+                        course_object["credit_hours"] = None
                         course_object["GPA"] = None
 
                     course_object_list.append(course_object)

@@ -1,3 +1,4 @@
+
 p {
   font-family: Lato;
 }
@@ -20,3 +21,9 @@ div{
   margin: 50px;
   overflow:auto;
 }
+<<<<<<< HEAD
+=======
+#buf {
+  height: 200px;
+}
+>>>>>>> 33370376c6305b4af09d9831eadfa63795731b79
