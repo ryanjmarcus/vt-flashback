@@ -5,8 +5,18 @@ p {
   display: flex;
   justify-content: start;
 }
-.tw{}
+.tw, button{
+  font-family: "Incosolata", monospace;
+  font-size: 16px;
+  font-weight: 500;
+}
+
 .tw::after{
   content: " ";
   white-space: pre;
+}
+div{
+  align-content: center;
+  margin: 50px;
+  overflow:auto;
 }

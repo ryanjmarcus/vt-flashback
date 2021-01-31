@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { CanvasService } from '../../services/canvas.service';
 import Typewriter from 't-writer.js';
 import { R3TargetBinder } from '@angular/compiler';
+import { stringify } from '@angular/compiler/src/util';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -17,11 +18,17 @@ export class HomeComponent implements OnInit {
   @ViewChild('tw3', { static: true }) typewriterElement3;
   @ViewChild('tw3', { static: true }) typewriterElement4;
   @ViewChild('tw5', { static: true }) typewriterElement5;
+  @ViewChild('tw6', { static: true }) typewriterElement6;
+  @ViewChild('tw7', { static: true }) typewriterElement7;
+  @ViewChild('tw8', { static: true }) typewriterElement8;
   writer: Typewriter
   writer2: Typewriter
   writer3: Typewriter
   writer4: Typewriter
   writer5: Typewriter
+  writer6: Typewriter
+  writer7: Typewriter
+  writer8: Typewriter
   showButton: boolean
   readyToGo: boolean
   target: ViewChild
@@ -30,13 +37,16 @@ export class HomeComponent implements OnInit {
     this.readyToGo = false;
     this.showButton = false;
     const textColor = 'black';
-    this.delayTime = 2000;
-    const speed = 10;
+    this.delayTime = 1000;
+    const speed = 5;
     const target2 = this.typewriterElement2.nativeElement;
     const target = this.typewriterElement.nativeElement;
     const target3 = this.typewriterElement3.nativeElement;
     const target4 = this.typewriterElement4.nativeElement;
     const target5 = this.typewriterElement5.nativeElement;
+    const target6 = this.typewriterElement6.nativeElement;
+    const target7 = this.typewriterElement7.nativeElement;
+    const target8 = this.typewriterElement8.nativeElement;
     this.writer = new Typewriter(target, {
       loop: false,
       typeColor: textColor,
@@ -68,7 +78,24 @@ export class HomeComponent implements OnInit {
       typeSpeed: speed
 
     })
+    this.writer6 = new Typewriter(target6, {
+      loop: false,
+      typeColor: textColor,
+      typeSpeed: speed
 
+    })
+    this.writer7 = new Typewriter(target7, {
+      loop: false,
+      typeColor: textColor,
+      typeSpeed: speed
+
+    })
+    this.writer8 = new Typewriter(target8, {
+      loop: false,
+      typeColor: textColor,
+      typeSpeed: speed
+
+    })
 
     this.startWriter();
     this.delay(this.delayTime).then(any => {
@@ -147,16 +174,125 @@ export class HomeComponent implements OnInit {
 
   startWriter5() {
     console.log("writer starting");
-    this.writer5
-      .type("Great! Let me look over things for a little...")
-      .rest(500)
-      .start();
-    setTimeout(()=>{
-      document.getElementsByTagName("span")[0].remove();
-    }, 3000
-    );
+    this.writer5.removeCursor()
+      .type("Great! Let me look over things for a little...<br><br>")
+      .rest(2000).type("omg<br><br>").rest(1000).type("lol<br><br>").rest(1000).type("is this you?<br><br>").start();
+      setTimeout(()=>{
+        let button1 = document.createElement("button");
+        button1.innerText = "Yes!";
+        let button2 = document.createElement("button");
+        button2.innerText = "Maybe?";
+        document.getElementsByTagName("span")[0].appendChild(document.createElement("br"));
+        document.getElementsByTagName("span")[0].appendChild(document.createElement("br"));
+        document.getElementsByTagName("span")[0].appendChild(button1);
+        document.getElementsByTagName("span")[0].appendChild(button2);
+        document.getElementsByTagName("span")[0].appendChild(document.createElement("br"));
+        document.getElementsByTagName("span")[0].appendChild(document.createElement("br"));
+
+        button1.addEventListener("click",()=>{
+          this.startWriter6();
+          button1.disabled = true;
+          button2.disabled = true;
+        });
+        button2.addEventListener("click",()=>{
+          this.startWriter6();
+          button2.disabled = true;
+          button1.disabled = true;
+        });
+      }, 8000);
   }
 
+  startWriter6(){
+    this.writer6.removeCursor().type("Cute<br><br>").rest(1000).type("Okay, here we go...<br><br>").rest(3000).type("Seeing plenty of <variable> classes<br><br>").rest(1000).type("Finding a lot of <variable> classes<br><br>").rest(1000).type("Like...").rest(1000).type(" a LOT<br><br>").rest(1000).type("Ready to take a lil look?<br><br>").start();
+    setTimeout(()=>{
+      let len = document.getElementsByClassName("span").length;
+      let button1 = document.createElement("button");
+      button1.innerText = "Yes!";
+      let button2 = document.createElement("button");
+      button2.innerText = "No! I find this bot to be condescending!";
+      
+      document.getElementsByTagName("span")[2].append(button1);
+      document.getElementsByTagName("span")[2].append(button2);
+      button1.addEventListener("click", ()=>{
+        this.startWriter7();
+        button1.disabled = true;
+        button2.disabled = true;
+      });
+      button2.addEventListener("click", ()=>{
+        this.startWriter7();
+        button1.disabled = true;
+        button2.disabled = true;
+      })
+
+    }, 11000);
+  }
+
+  startWriter7(){
+     this.writer7.removeCursor().type("<br><br>Excellent <br><br>").rest(1000).type("Wait, quick. Take a guess... ").rest(1000).type("How many courses have you taken so far?<br><br>").rest(1000).start();
+     setTimeout(()=>{
+      let element = document.createElement("input");
+      document.getElementsByTagName('span')[5].append(element);
+      let element2 = document.createElement("button");
+      element2.innerText = "enter";
+      document.getElementsByTagName('span')[5].append(element.appendChild(element2));
+      
+      element2.addEventListener("click", ()=>{
+        element2.disabled = true;
+        this.reviewInput(element.value);
+        
+      });
+  
+     }, 5000);
+
+  }
+
+  reviewInput(num:string){
+    this.scrollToBottom();
+    try {
+      let i = parseInt(num);
+      if (i < 20){
+        this.writer8.removeCursor().type("<br><br>That was a little low<br><br>");
+      }
+      else if (i == 20){
+        this.writer8.removeCursor().type("<br><br>Wow! That was it!<br><br>");
+      }
+      else{
+        this.writer8.removeCursor().type("<br><br>That was a little high<br><br>");
+      }
+    } catch (error) {
+      this.writer8.removeCursor().type("<br><br>thats not valid<br><br>");
+      
+    }
+    this.writer8.rest(1000).type("Thats over 105 credits that I can see.<br><br>").rest(1000).type("I'm sure you have more though. You seem like a whiz to me.<br><br>").
+    rest(1000).type("Your average start time for a course was: startTime<br><br>").rest(1000).type("Hold up, you're in class, with professor this semester?").rest(1000).type("...<br><br>").rest(500).type("You good?<br><br>").start();
+    this.scrollToBottom();
+    setTimeout(()=>{
+      
+      let button1 = document.createElement("button");
+      button1.innerText = "Yes!";
+      let button2 = document.createElement("button");
+      button2.innerText = "No!";
+      
+      document.getElementsByTagName("span")[6].append(button1);
+      document.getElementsByTagName("span")[6].append(button2);
+      button1.addEventListener("click", ()=>{
+        //this.startWriter7();
+        button1.disabled = true;
+        button2.disabled = true;
+      });
+      button2.addEventListener("click", ()=>{
+        //this.startWriter7();
+        button1.disabled = true;
+        button2.disabled = true;
+      })
+      
+    }, 10000);
+  }
+  scrollToBottom(){
+    window.scrollBy(0, 1);
+    setTimeout(()=>this.scrollToBottom(), 10);
+  }
+  
   switchReady() {
     this.showButton = !this.showButton;
     this.readyToGo = true;
