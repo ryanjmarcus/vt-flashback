@@ -1,6 +1,7 @@
 import json
 import flask
 from flask import request, jsonify
+import requests
 import pandas as pd
 import glob
 
@@ -19,43 +20,50 @@ csv_json = json.loads(csv_json_string)
 with open('2021_01.json') as file:
     merged_json = json.load(file)
 
-  
-@app.route('/', methods=['GET'])
-def home():
-    return '''<h1>Distant Reading Archive</h1>
-<p>A prototype API for distant reading of science fiction novels.</p>'''
-
 
 # A route to return all of the available entries in our catalog.
 @app.route('/api/v1/courses/all', methods=['GET'])
 def api_all():
-
     return jsonify(csv_json)
 
+@app.route('/api/v1/courses/search/all', methods=['GET'])
+def api_course_search_all():
+    return jsonify(merged_json)
 
-
-@app.route('/api/v1/courses/search', methods=['GET'])
-def api_course_search():
-    # Check if an ID was provided as part of the URL.
-    # If ID is provided, assign it to a variable.
-    # If no ID is provided, display an error in the browser.
-    if 'crn' in request.args:
-        crn = int(request.args['crn'])
-    else:
-        return "Error: No CRN field provided. Please specify a CRN."
-
-    if 'year' in request.args:
-        year = request.args['year']
-    else:
-        return "Error: No Academic year field provided. Please specify year"
+@app.route('/api/v1/canvas/courses', methods=['GET'])
+def access_canvas_courses():
     
-    if 'term' in request.args:
-        term = request.args['term']
+    url = "https://canvas.vt.edu/api/v1/courses"
+
+    if 'token' in request.args:
+
+        token = request.args['token']
     else:
-        return "Error: No Term field provided. Please specify term"
-    
+        return "Error: No Token field provided. Please Provide token field"
+
+    headers = {
+        'Authorization' : 'Bearer ' + token,
+    }
+
+    canvas_courses = requests.get(url = url, headers = headers, data = {})
+
+    for course in canvas_courses:
+        
+        print(course)
+        if "course_code" in course:
+            course_values = split_course_code(course["course_code"])
+            course_info_hokiespa = course_search_hokiespa(course_values[0], course_values[1])
+            course_info_gpa = course_search_gpa(course_values[0], course_values[1])
+
+        
+
+    return jsonify(canvas_courses)
+
+def course_search_gpa(crn, term):
     # Create an empty list for our results
     results = []
+
+    
 
     # Loop through the data and match results that fit the requested ID.
     # IDs are unique, but other fields might return many results
@@ -64,34 +72,26 @@ def api_course_search():
             results.append(course)
 
     for course in results:
-
-        if course["Academic Year"] == year and course["Term"] == term:
-            return jsonify([course])
+        first_year = course["Academic Year"][2:4]
+        second_year = course["Academic Year"][-2:]
+        year = term[2:4]
+        if year == first_year or year == second_year and course["Term"] == term[-2:]:
+            return [course]
     
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
-    return "Error: Course is not found"
-
-@app.route('/api/v1/courses/search/all', methods=['GET'])
-def api_course_search_all():
-    return jsonify(merged_json)
+    return ["Error: Course is not found"]
 
 
-@app.route('/api/v1/courses/search/hokie', methods=['GET'])
-def api_course_search_plus():
+
+
+
+
+def course_search_hokiespa(crn, term):
     # Check if an ID was provided as part of the URL.
     # If ID is provided, assign it to a variable.
     # If no ID is provided, display an error in the browser.
-    if 'crn' in request.args:
-        crn = request.args['crn']
-    else:
-        return "Error: No CRN field provided. Please specify a CRN."
     
-    if 'term' in request.args:
-        term = request.args['term']
-
-    else:
-        return "Error: No Term field provided. Please specify term"
     
     # Create an empty list for our results
     results = []
@@ -105,31 +105,24 @@ def api_course_search_plus():
     for course in results:
 
         if course["term"] == term:
-            return jsonify([course])
+            return [course]
     
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
-    return "Error: Course is not found"
+    return ["Error: Course is not found"]
+
+def split_course_code(course_code):
+
+    print(course_code)
+
+    vals = course_code.split('_')
+
+    return (vals[2], vals[3]) 
 
 
-@app.route('/api/v1/canvas/courses/all', methods=['GET'])
-def access_canvas_courses():
-    
-    url = "https://canvas.vt.edu/api/v1/courses?per_page=100"
-    if 'token' in request.args:
 
-        token = request.args['token']
-    else:
-        return "Error: No Token field provided. Please Provide token field"
 
-    headers = {
-        'Authorization' : 'Bearer ' + token,
-    }
 
-    response = requests.request(url, headers = headers, data = {})
-
-    return jsonify(response)
 
 app.run()
-
 
