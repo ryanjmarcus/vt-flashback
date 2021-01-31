@@ -18,7 +18,7 @@ csv_json = json.loads(csv_json_string)
 #    outfile.write('[{}]'.format(
 #        ','.join([open(f, "rb").read() for f in read_files])))
 
-with open('2021_01.json') as file:
+with open('2020_09.json') as file:
     merged_json = json.load(file)
 
 
@@ -60,20 +60,23 @@ def access_canvas_courses():
 
             if course_values:
 
-                
-
                 course_info_hokiespa = course_search_hokiespa(course_values[0], course_values[1])
                 course_info_gpa = course_search_gpa(course_values[0], course_values[1])
 
-                print(course_info_hokiespa)
-                if course_info_hokiespa:
+                
+
+
+                if course_info_hokiespa and course_info_gpa:
+                    print(course_info_gpa)
                     print(course_info_hokiespa)
 
                     course_object = {
                         "course" : course_info_hokiespa["courseTitle"],
                         "subject" : course_info_hokiespa["subject"],
                         "course_number" : course_info_hokiespa["courseNumber"],
-                        "credit_hours" : course_info_hokiespa["creditHours"],
+                        "credit_hours" : course_info_gpa["Credits"],
+                        "GPA" : course_info_gpa["GPA"]
+
 
                     }
                     course_object_list.append(course_object)
@@ -90,14 +93,20 @@ def course_search_gpa(crn, term):
     # Loop through the data and match results that fit the requested ID.
     # IDs are unique, but other fields might return many results
     for course in csv_json:
-        if course['CRN'] == crn:
+
+        if course['CRN'] == int(crn):
             results.append(course)
 
+
     for course in results:
+        
         first_year = course["Academic Year"][2:4]
+        
         second_year = course["Academic Year"][-2:]
+        
         year = term[2:4]
         if year == first_year or year == second_year and course["Term"] == term[-2:]:
+            
             return course
     
     # Use the jsonify function from Flask to convert our list of
