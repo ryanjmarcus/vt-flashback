@@ -51,16 +51,35 @@ def access_canvas_courses():
     canvas_json_courses = json.loads(canvas_courses.text)
 
 
+    course_object_list = []
+
     for course in canvas_json_courses:
     
-        if "course_code" in course and "_" in str(course["course_code"]) :
-            print(course["course_code"])
+        if "course_code" in course and '_' in course["course_code"]:
             course_values = split_course_code(course["course_code"])
-        #course_info_hokiespa = course_search_hokiespa(course_values[0], course_values[1])
-        #course_info_gpa = course_search_gpa(course_values[0], course_values[1])
+
+            if course_values:
+
+                
+
+                course_info_hokiespa = course_search_hokiespa(course_values[0], course_values[1])
+                course_info_gpa = course_search_gpa(course_values[0], course_values[1])
+
+                print(course_info_hokiespa)
+                if course_info_hokiespa:
+                    print(course_info_hokiespa)
+
+                    course_object = {
+                        "course" : course_info_hokiespa["courseTitle"],
+                        "subject" : course_info_hokiespa["subject"],
+                        "course_number" : course_info_hokiespa["courseNumber"],
+                        "credit_hours" : course_info_hokiespa["creditHours"],
+
+                    }
+                    course_object_list.append(course_object)
         
 
-    return jsonify(canvas_json_courses)
+    return jsonify(course_object_list)
 
 def course_search_gpa(crn, term):
     # Create an empty list for our results
@@ -79,11 +98,11 @@ def course_search_gpa(crn, term):
         second_year = course["Academic Year"][-2:]
         year = term[2:4]
         if year == first_year or year == second_year and course["Term"] == term[-2:]:
-            return [course]
+            return course
     
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
-    return ["Error: Course is not found"]
+    return None
 
 
 
@@ -108,19 +127,28 @@ def course_search_hokiespa(crn, term):
     for course in results:
 
         if course["term"] == term:
-            return [course]
+            return course
     
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
-    return ["Error: Course is not found"]   
+    return None
 
 def split_course_code(course_code):
 
-    print(course_code)
+    #print(course_code)
 
     vals = course_code.split('_')
 
-    return (vals[2], vals[3]) 
+
+    try:
+        crn = int(vals[-2])
+        term = int(vals[-1])
+        return (vals[-2], vals[-1]) 
+    except ValueError:
+        return None
+    # if len(vals) - 3 >= 0 and isinstance(vals[-2], int) and len(vals) - 2 >= 0 and isinstance(vals[-1], int):
+    #     return (vals[-2], vals[-1]) 
+    # return None
 
 
 
